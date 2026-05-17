@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Grade Calculator</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      padding: 40px 16px;
+    }
+
+    .container {
+      background: white;
+      padding: 32px;
+      border-radius: 10px;
+      width: 100%;
+      max-width: 540px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      color: #1a1a2e;
+      font-size: 22px;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      color: #666;
+      font-size: 13px;
+      margin-bottom: 24px;
+    }
+
+    .add-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 8px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .add-row input {
+      flex: 1;
+      min-width: 120px;
+      padding: 10px 12px;
+      border: 1.5px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      color: #333;
+      outline: none;
+    }
+
+    .add-row input:focus {
+      border-color: #4f46e5;
+    }
+
+    .add-row button {
+      padding: 10px 18px;
+      background-color: #4f46e5;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .add-row button:hover {
+      background-color: #4338ca;
+    }
+
+    .error-msg {
+      color: #e53e3e;
+      font-size: 12px;
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    .error-msg.visible {
+      display: block;
+    }
+
+    .subjects-list {
+      margin-bottom: 24px;
+    }
+
+    .subject-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 14px;
+      border: 1.5px solid #eee;
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+
+    .subject-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1a1a2e;
+    }
+
+    .subject-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .subject-score {
+      font-size: 14px;
+      color: #555;
+    }
+
+    .grade-badge {
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .grade-A { background: #f0fff4; color: #276749; }
+    .grade-B { background: #ebf8ff; color: #2b6cb0; }
+    .grade-C { background: #fffbeb; color: #b7791f; }
+    .grade-D { background: #fff5f5; color: #c53030; }
+    .grade-F { background: #1a1a2e; color: white; }
+
+    .remove-btn {
+      background: none;
+      border: none;
+      color: #ccc;
+      font-size: 16px;
+      cursor: pointer;
+      padding: 0 4px;
+    }
+
+    .remove-btn:hover {
+      color: #e53e3e;
+    }
+
+    .divider {
+      border: none;
+      border-top: 1.5px solid #eee;
+      margin: 20px 0;
+    }
+
+    .result-card {
+      background: #f8f7ff;
+      border: 1.5px solid #e0e0ff;
+      border-radius: 10px;
+      padding: 20px;
+      display: none;
+    }
+
+    .result-card.visible {
+      display: block;
+    }
+
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .result-label {
+      font-size: 13px;
+      color: #666;
+    }
+
+    .result-value {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1a1a2e;
+    }
+
+    .final-grade {
+      font-size: 28px;
+      font-weight: 800;
+      color: #4f46e5;
+    }
+
+    .remark {
+      margin-top: 12px;
+      font-size: 13px;
+      color: #555;
+      text-align: center;
+      font-style: italic;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 24px 0;
+      color: #aaa;
+      font-size: 14px;
+    }
+
+    .calculate-btn {
+      width: 100%;
+      padding: 12px;
+      background-color: #1a1a2e;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 4px;
+    }
+
+    .calculate-btn:hover {
+      background-color: #2d2d44;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>🎓 Grade Calculator</h2>
+    <p class="subtitle">Enter your subjects and scores to calculate your average grade</p>
+
+    <div class="add-row">
+      <input type="text" id="subject-name" placeholder="Subject e.g. Mathematics" />
+      <input type="number" id="subject-score" placeholder="Score (0-100)" min="0" max="100" />
+      <button id="add-subject-btn">Add</button>
+    </div>
+
+    <p class="error-msg" id="input-error">Please enter a subject name and a valid score (0–100)</p>
+
+    <div class="subjects-list" id="subjects-list">
+      <div class="empty-state">No subjects added yet.</div>
+    </div>
+
+    <button class="calculate-btn" id="calculate-btn">Calculate Average</button>
+
+    <hr class="divider" />
+
+    <div class="result-card" id="result-card">
+      <div class="result-row">
+        <span class="result-label">Total Subjects</span>
+        <span class="result-value" id="out-total">0</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Average Score</span>
+        <span class="result-value" id="out-average">0</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Final Grade</span>
+        <span class="result-value final-grade" id="out-grade">-</span>
+      </div>
+      <p class="remark" id="out-remark"></p>
+    </div>
+  </div>
+
+  <script src="index.js"></script>
+</body>
+</html>
