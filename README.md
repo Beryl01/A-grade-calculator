@@ -1,6 +1,6 @@
 # Grade Calculator
 
-A simple grade calculator built with HTML, CSS, and TypeScript.
+A simple grade calculator.
 
 **Live demo:** [https://beryl01.github.io/A-grade-calculator/](https://beryl01.github.io/A-grade-calculator/)
 
@@ -9,8 +9,7 @@ A simple grade calculator built with HTML, CSS, and TypeScript.
 - Add subjects with a name and a score out of 100
 - Each subject instantly shows its letter grade (A–F)
 - Remove any subject from the list
-- Calculate your overall average and final grade with a motivational remark
-- Subjects are saved in the browser so they stay after a page refresh
+- Calculate your overall average and final grade with a remark
 
 ## Grading scale
 

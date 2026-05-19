@@ -138,9 +138,8 @@ function renderSubjects(): void {
   });
 }
 
-// ── Event: Add subject ────────────────────────────────────────────────────────
-
-let subjects: Subject[] = [];
+// Here Add subject 
+let subjects: Subject[] = loadSubjects();
 
 addSubjectBtn.addEventListener("click", () => {
   const name  = subjectNameInput.value.trim();
@@ -163,8 +162,8 @@ addSubjectBtn.addEventListener("click", () => {
   renderSubjects();
 });
 
-// ── Event: Remove subject ─────────────────────────────────────────────────────
 
+// Here Remove subject 
 subjectsList.addEventListener("click", (e: MouseEvent) => {
   const target = e.target as HTMLElement;
 
@@ -177,8 +176,8 @@ subjectsList.addEventListener("click", (e: MouseEvent) => {
   }
 });
 
-// ── Event: Calculate ──────────────────────────────────────────────────────────
 
+// Here Calculate to get grade
 calculateBtn.addEventListener("click", () => {
   if (subjects.length === 0) {
     showError("Please add at least one subject before calculating.");
@@ -197,6 +196,6 @@ calculateBtn.addEventListener("click", () => {
   resultCard.classList.add("visible");
 });
 
-// ── On page load ──────────────────────────────────────────────────────────────
+
 
 renderSubjects();
