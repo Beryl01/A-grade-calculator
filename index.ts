@@ -139,7 +139,7 @@ function renderSubjects(): void {
 }
 
 // Here Add subject 
-let subjects: Subject[] = loadSubjects();
+let subjects: Subject[] = [];
 
 addSubjectBtn.addEventListener("click", () => {
   const name  = subjectNameInput.value.trim();

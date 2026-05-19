@@ -106,7 +106,7 @@ function renderSubjects() {
     });
 }
 // Here Add subject 
-let subjects = loadSubjects();
+let subjects = [];
 addSubjectBtn.addEventListener("click", () => {
     const name = subjectNameInput.value.trim();
     const score = Number(subjectScoreInput.value);
