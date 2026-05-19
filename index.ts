@@ -1,5 +1,3 @@
-// This enum maps letter grades to their score ranges.
-// in multiple places — I define them once and reference the enum.
 enum LetterGrade {
   A = "A",
   B = "B",
@@ -8,32 +6,43 @@ enum LetterGrade {
   F = "F",
 }
 
-// Each subject has a name and a numeric score.
 interface Subject {
   name: string;
   score: number;
 }
 
-// This interface defines what the final result looks like
 interface GradeResult {
   average: number;
   grade: LetterGrade;
   remark: string;
 }
 
-// Our in-memory list of subjects the user has added
-let subjects: Subject[] = [];
+// ── DOM elements ──────────────────────────────────────────────────────────────
 
-// DOM elements
-const subjectNameInput = document.getElementById("subject-name") as HTMLInputElement;
+const subjectNameInput  = document.getElementById("subject-name")  as HTMLInputElement;
 const subjectScoreInput = document.getElementById("subject-score") as HTMLInputElement;
-const addSubjectBtn = document.getElementById("add-subject-btn") as HTMLButtonElement;
-const subjectsList = document.getElementById("subjects-list") as HTMLDivElement;
-const calculateBtn = document.getElementById("calculate-btn") as HTMLButtonElement;
-const inputError = document.getElementById("input-error") as HTMLParagraphElement;
-const resultCard = document.getElementById("result-card") as HTMLDivElement;
+const addSubjectBtn     = document.getElementById("add-subject-btn") as HTMLButtonElement;
+const subjectsList      = document.getElementById("subjects-list") as HTMLDivElement;
+const calculateBtn      = document.getElementById("calculate-btn") as HTMLButtonElement;
+const inputError        = document.getElementById("input-error")   as HTMLParagraphElement;
+const resultCard        = document.getElementById("result-card")   as HTMLDivElement;
 
-// This function takes a numeric score and returns the correct LetterGrade.
+// ── localStorage ──────────────────────────────────────────────────────────────
+
+const STORAGE_KEY = "gradeSubjects";
+
+function loadSubjects(): Subject[] {
+  const data = localStorage.getItem(STORAGE_KEY);
+  if (data === null) return [];
+  return JSON.parse(data) as Subject[];
+}
+
+function saveSubjects(list: Subject[]): void {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+}
+
+// ── Grade logic ───────────────────────────────────────────────────────────────
+
 function getLetterGrade(score: number): LetterGrade {
   if (score >= 70) return LetterGrade.A;
   if (score >= 60) return LetterGrade.B;
@@ -42,113 +51,152 @@ function getLetterGrade(score: number): LetterGrade {
   return LetterGrade.F;
 }
 
-// Returns a motivational remark based on the letter grade.
 function getRemark(grade: LetterGrade): string {
   switch (grade) {
-    case LetterGrade.A:
-      return "Excellent work! Keep it up.";
-    case LetterGrade.B:
-      return "Good job! A little more effort and you'll hit an A.";
-    case LetterGrade.C:
-      return "Average. There's room to improve.";
-    case LetterGrade.D:
-      return "Below average. Consider revisiting the material.";
-    case LetterGrade.F:
-      return "Unfortunately a fail. Don't give up — try again.";
+    case LetterGrade.A: return "Excellent work! Keep it up.";
+    case LetterGrade.B: return "Good job! A little more effort and you'll hit an A.";
+    case LetterGrade.C: return "Average. There's room to improve.";
+    case LetterGrade.D: return "Below average. Consider revisiting the material.";
+    case LetterGrade.F: return "Unfortunately a fail. Don't give up — try again.";
   }
 }
 
-// This function takes the full subjects array and returns a GradeResult.
 function calculateResult(subjectList: Subject[]): GradeResult {
-  const total = subjectList.reduce((sum, s) => sum + s.score, 0);
+  const total   = subjectList.reduce((sum, s) => sum + s.score, 0);
   const average = parseFloat((total / subjectList.length).toFixed(1));
-  const grade = getLetterGrade(average);
-  const remark = getRemark(grade);
-
+  const grade   = getLetterGrade(average);
+  const remark  = getRemark(grade);
   return { average, grade, remark };
 }
 
-// Renders the subjects list to the DOM.
-function renderSubjects(): void {
-  if (subjects.length === 0) {
-    subjectsList.innerHTML = `<div class="empty-state">No subjects added yet.</div>`;
-    return;
-  }
+// ── Error helper ──────────────────────────────────────────────────────────────
 
-  subjectsList.innerHTML = subjects
-    .map((subject, index) => {
-      const grade = getLetterGrade(subject.score);
-      return `
-        <div class="subject-item">
-          <span class="subject-name">${subject.name}</span>
-          <div class="subject-right">
-            <span class="subject-score">${subject.score}/100</span>
-            <span class="grade-badge grade-${grade}">${grade}</span>
-            <button class="remove-btn" data-index="${index}">✕</button>
-          </div>
-        </div>
-      `;
-    })
-    .join("");
+const DEFAULT_ERROR = "Please enter a subject name and a valid score (0–100)";
+
+function showError(message: string): void {
+  inputError.textContent = message;
+  inputError.classList.add("visible");
 }
 
-// Handle clicking the Add button
-addSubjectBtn.addEventListener("click", () => {
-  const name = subjectNameInput.value.trim();
-  const score = Number(subjectScoreInput.value);
+function hideError(): void {
+  inputError.classList.remove("visible");
+  inputError.textContent = DEFAULT_ERROR;
+}
 
-  // Validate: name must not be empty, score must be a number between 0 and 100
-  if (name === "" || isNaN(score) || score < 0 || score > 100) {
-    inputError.classList.add("visible");
+// ── Render ────────────────────────────────────────────────────────────────────
+
+// Builds each subject row using createElement + textContent to avoid XSS
+function buildSubjectItem(subject: Subject, index: number): HTMLDivElement {
+  const grade = getLetterGrade(subject.score);
+
+  const item = document.createElement("div");
+  item.className = "subject-item";
+
+  const nameSpan = document.createElement("span");
+  nameSpan.className = "subject-name";
+  nameSpan.textContent = subject.name;         // textContent — never innerHTML for user data
+
+  const right = document.createElement("div");
+  right.className = "subject-right";
+
+  const scoreSpan = document.createElement("span");
+  scoreSpan.className = "subject-score";
+  scoreSpan.textContent = `${subject.score}/100`;
+
+  const badge = document.createElement("span");
+  badge.className = `grade-badge grade-${grade}`;
+  badge.textContent = grade;
+
+  const removeBtn = document.createElement("button");
+  removeBtn.className = "remove-btn";
+  removeBtn.textContent = "✕";
+  removeBtn.dataset.index = String(index);
+
+  right.appendChild(scoreSpan);
+  right.appendChild(badge);
+  right.appendChild(removeBtn);
+
+  item.appendChild(nameSpan);
+  item.appendChild(right);
+
+  return item;
+}
+
+function renderSubjects(): void {
+  subjectsList.innerHTML = "";
+
+  if (subjects.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "empty-state";
+    empty.textContent = "No subjects added yet.";
+    subjectsList.appendChild(empty);
     return;
   }
 
-  inputError.classList.remove("visible");
+  subjects.forEach((subject, index) => {
+    subjectsList.appendChild(buildSubjectItem(subject, index));
+  });
+}
 
-  const newSubject: Subject = { name, score };
-  subjects.push(newSubject);
+// ── Event: Add subject ────────────────────────────────────────────────────────
 
-  subjectNameInput.value = "";
+let subjects: Subject[] = loadSubjects();
+
+addSubjectBtn.addEventListener("click", () => {
+  const name  = subjectNameInput.value.trim();
+  const score = Number(subjectScoreInput.value);
+
+  if (name === "" || isNaN(score) || score < 0 || score > 100 || subjectScoreInput.value === "") {
+    showError(DEFAULT_ERROR);
+    return;
+  }
+
+  hideError();
+
+  subjects.push({ name, score });
+  saveSubjects(subjects);
+
+  subjectNameInput.value  = "";
   subjectScoreInput.value = "";
 
-  // Hide the result card when new subjects are added so the user knows they need to recalculate
   resultCard.classList.remove("visible");
-
   renderSubjects();
 });
 
-// Handle removing a subject by clicking the ✕ button.
+// ── Event: Remove subject ─────────────────────────────────────────────────────
+
 subjectsList.addEventListener("click", (e: MouseEvent) => {
   const target = e.target as HTMLElement;
 
   if (target.classList.contains("remove-btn")) {
     const index = Number(target.dataset.index);
     subjects.splice(index, 1);
+    saveSubjects(subjects);
     resultCard.classList.remove("visible");
     renderSubjects();
   }
 });
 
-// Handle the Calculate button click. It can only calculate if there's at least one subject in the list.
+// ── Event: Calculate ──────────────────────────────────────────────────────────
+
 calculateBtn.addEventListener("click", () => {
   if (subjects.length === 0) {
-    inputError.textContent = "Please add at least one subject before calculating.";
-    inputError.classList.add("visible");
+    showError("Please add at least one subject before calculating.");
     return;
   }
 
-  inputError.classList.remove("visible");
+  hideError();
 
   const result = calculateResult(subjects);
 
-  // Populate the result card with the calculated values
-  (document.getElementById("out-total") as HTMLSpanElement).textContent = String(subjects.length);
+  (document.getElementById("out-total")   as HTMLSpanElement).textContent = String(subjects.length);
   (document.getElementById("out-average") as HTMLSpanElement).textContent = String(result.average);
-  (document.getElementById("out-grade") as HTMLSpanElement).textContent = result.grade;
-  (document.getElementById("out-remark") as HTMLParagraphElement).textContent = result.remark;
+  (document.getElementById("out-grade")   as HTMLSpanElement).textContent = result.grade;
+  (document.getElementById("out-remark")  as HTMLParagraphElement).textContent = result.remark;
 
   resultCard.classList.add("visible");
 });
 
-// Initial render
+// ── On page load ──────────────────────────────────────────────────────────────
+
 renderSubjects();

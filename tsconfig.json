@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "target": "ES6",
+    "lib": ["DOM", "ES2016"]
+  },
+  "include": ["index.ts"],
+  "exclude": ["index.js"]
+}
